@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Todo List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            width: 500px;
+            margin: auto;
+            height: auto;
+            background-color: azure;
+        }
+        
+        h1 {
+            text-align: center;
+        }
+        
+        form {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        button[type="submit"] {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        li {
+            background-color: #f9f9f9;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+        #todoList li {
+            background-color: #f9f9f9;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Todo List</h1>
+    <h2>Create Section</h2>
+
+    <form id="addTodoForm">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required>
+        
+        <label for="description">Description:</label>
+        <input type="text" id="description" name="description" required>
+        
+        <button type="submit">Add Todo</button>
+    </form>
+
+
+    
+
+    <h2>Search Todo by Title:</h2>
+    <form id="searchTodoForm">
+        <label for="searchTitle">Title:</label>
+        <input type="text" id="searchTitle" name="searchTitle" required>
+        <button type="button" id="searchButton">Search</button>
+    </form>
+    <ul id="searchResult"></ul>
+
+    <script>
+        
+        // get data from api url
+        const todoList = document.getElementById('todoList');
+
+        fetch('http://localhost:7777/api/todos')
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(todo => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `Title: ${todo.title}, Description: ${todo.description}`;
+                    todoList.appendChild(listItem);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+
+            // add new data
+            document.getElementById('addTodoForm').addEventListener('submit', function(event) {
+            event.preventDefault(); 
+            
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+
+            const newTodo = {
+                title: title,
+                description: description,
+                status: "COMPLETE"
+            };
+
+            fetch('http://localhost:7777/api/todos/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newTodo)
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Todo added successfully');
+                } else {
+                    throw new Error('Failed to add todo');
+                }
+            })
+            .catch(error => {
+                console.error('Error adding todo:', error);
+            });
+        });
+
+    // search todo by title
+    document.getElementById('searchButton').addEventListener('click', function() {
+        const searchTitle = document.getElementById('searchTitle').value;
+
+        fetch(`http://localhost:7777/api/todos/searchByTitle?title=${searchTitle}`)
+            .then(response => response.json())
+            .then(data => {
+                const searchResult = document.getElementById('searchResult');
+                searchResult.innerHTML = '';
+
+                data.forEach(todo => {
+                    const searchItem = document.createElement('li');
+                    searchItem.textContent = `Title: ${todo.title}, Description: ${todo.description}`;
+                    searchResult.appendChild(searchItem);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching search data:', error);
+            });
+    });
+    </script>
+</body>
+</html>
